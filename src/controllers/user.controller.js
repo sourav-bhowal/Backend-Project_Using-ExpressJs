@@ -56,9 +56,10 @@ export const registerUser = asyncHandler( async(req, res) => {
     }
 
 
-    // Algo for getting the file from [0] position i.e. the first position
+    // Algo for getting the files from [0] position i.e. the first position
     // const avatarLocalPath = req.files?.avatar[0]?.path; -- not working //
     // const coverImageLocalPath = req.files?.coverImage[0]?.path; --- not working //
+    // we are writing "files" instead of "file" as we are taking both files i.e. "avatar" & "coverImage"
     let avatarLocalPath;
     if (req.files && Array.isArray(req.files.avatar) && req.files.avatar.length > 0) {
         avatarLocalPath = req.files.avatar[0].path;
@@ -252,6 +253,142 @@ export const refreshAccessToken = asyncHandler( async(req, res) => {
     catch (error) {
         throw new apiError(401, error?.message, "Invalid refresh token");
     }
+
+} );
+
+
+export const changeCurrentUserPassword = asyncHandler( async(req, res) => {
+    
+    // Taking the old and new password from the user using req.body
+    const {oldPassword, newPassword} = req.body;
+
+    // finding the user in DB from req.body as user is already logged in if he had to change his password
+    const user = await User.findById(req.user?._id);
+
+    // checking wheather the old_password is correct or not
+    const isOldPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+
+    if(!isOldPasswordCorrect) {
+        throw new apiError(401, "Invalid old password");
+    }
+
+    // assigning the new password to the user
+    user.password = newPassword;
+
+    // saving the user to DB with updated password
+    await user.save({validationBeforeSave: false});
+
+    // Returning response
+    return res
+    .status(200)
+    .json(new apiResponse(200, {}, "Password changed successfully."))
+
+
+} );
+
+
+export const getCurrentUser = asyncHandler( async(req, res) => {
+
+    // returning the current user
+    return res
+    .status(200)
+    .json(200, req.user, "Current user fetched successfully.");
+} );
+
+
+export const updateUserDetails = asyncHandler( async(req, res) => {
+
+    // Taking the input from user he/she wants to update or change from "req.body"
+    const {fullname, email} = req.body;
+
+    if(!(fullname || email)) {
+        throw new apiError(400, "All fields are required.");
+    }
+
+
+    // finding the user from DB & updating it
+    const user = User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set: {fullname: fullname, email: email}
+            // $set: {fullname, email} you can write like this also
+        },
+        {new: true}
+    ).select("-password") // we don't want password field
+
+
+    // Returning response
+    return res
+    .status(200)
+    .json(new apiResponse(200, user, "User updated successfully."));
+
+} );
+
+
+export const updateUserAvatar = asyncHandler( async(req, res) => {
+
+    // taking the new avatar file
+    const newAvatarLocalPath = req.file?.path; // we are writing "file" instead of "files" as we are changing only one file i.e. "avatar"
+
+    if (!newAvatarLocalPath) {
+        throw new apiError(404, "Avatar file not found.");
+    }
+
+    // uploading new avatar on cloudinary
+    const newAvatar = await uploadOnCloudinary(newAvatarLocalPath);
+
+    if(!newAvatar.url) { // we only need the new avatar url not whole object
+        throw new apiError(404, "Avatar file not found");
+    }
+
+    // finding & updating the user on the DB
+    const user = await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set: {avatar: newAvatar.url}  // we only need the new avatar url not whole object
+        },
+        {new: true}
+    ).select("-password");  // we dont want password field
+
+
+    // Returning response
+    return res
+    .status(200)
+    .json(new apiResponse(200, user, "Avatar updated successfully."));
+
+} );
+
+
+export const updateUserCoverImage = asyncHandler( async(req, res) => {
+
+    // taking the new cover image file
+    const newCoverImageLocalPath = req.file?.path; // we are writing "file" instead of "files" as we are changing only one file i.e. "avatar"
+
+    if (!newCoverImageLocalPath) {
+        throw new apiError(404, "Cover Image file not found.");
+    }
+
+    // uploading new cover-image on cloudinary
+    const newCoverImage = await uploadOnCloudinary(newCoverImageLocalPath);
+
+    if(!newCoverImage.url) { // we only need the new cover image url not whole object
+        throw new apiError(404, "Cover Image file not found");
+    }
+
+    // finding & updating the user on the DB
+    const user = await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set: {coverImage: newCoverImage.url}  // we only need the new cover image url not whole object
+        },
+        {new: true}
+    ).select("-password");  // we dont want password field
+
+
+    // Returning response
+    return res
+    .status(200)
+    .json(new apiResponse(200, user, "CoverImage updated successfully."));
 
 } );
 
