@@ -8,7 +8,7 @@ cloudinary.config({ // cloudinary configuration
 });
 
 
-const uploadOnCloudinary = async (localFilePath) => { // async as uploading takes some time.
+export const uploadOnCloudinary = async (localFilePath) => { // async as uploading takes some time.
     try {
         if(!localFilePath) return null;
         // upload the file on cloudinary.
@@ -28,5 +28,3 @@ const uploadOnCloudinary = async (localFilePath) => { // async as uploading take
     }
 };
 
-
-export default uploadOnCloudinary;

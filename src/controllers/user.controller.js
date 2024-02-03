@@ -1,7 +1,7 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import apiError from "../utils/apiError.js";
 import { User } from "../models/user.models.js";
-import uploadOnCloudinary from "../utils/cloudinary.js";
+import {uploadOnCloudinary} from "../utils/cloudinary.js";
 import apiResponse from "../utils/apiResponse.js";
 import { generateAccessAndRefreshTokens } from "../utils/generateAccessAndRefreshTokens.js";
 import jwt from "jsonwebtoken";
@@ -185,7 +185,7 @@ export const logoutUser = asyncHandler( async(req, res) => {
     await User.findByIdAndUpdate(
         req.user._id,
         {
-            $set: { refreshToken: undefined }
+            $unset: { refreshToken: 1 }
         },
         {
             new: true
@@ -292,26 +292,30 @@ export const getCurrentUser = asyncHandler( async(req, res) => {
     // returning the current user
     return res
     .status(200)
-    .json(200, req.user, "Current user fetched successfully.");
+    .json(new apiResponse(200, req.user, "Current user fetched successfully."));
 } );
 
 
 export const updateUserDetails = asyncHandler( async(req, res) => {
 
     // Taking the input from user he/she wants to update or change from "req.body"
-    const {fullname, email} = req.body;
+    const { fullname, email } = req.body;
 
     if(!(fullname || email)) {
         throw new apiError(400, "All fields are required.");
     }
 
+    const atpos = email.indexOf("@"); // check of "@" in an email for valid email
+    if(atpos === -1) {
+        throw new apiError(400, "email is invalid.");
+    }
 
     // finding the user from DB & updating it
-    const user = User.findByIdAndUpdate(
+    const user = await User.findByIdAndUpdate(
         req.user?._id,
         {
-            $set: {fullname: fullname, email: email}
-            // $set: {fullname, email} you can write like this also
+            // $set: {fullname: fullname, email: email}
+            $set: {fullname, email} // you can write like this also
         },
         {new: true}
     ).select("-password") // we don't want password field

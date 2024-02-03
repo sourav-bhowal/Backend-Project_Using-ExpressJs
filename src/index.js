@@ -5,8 +5,7 @@ import app from "./app.js";
 
 dotenv.config({
     path: "./.env"
-})
-
+});
 
 
 connectDB()
@@ -18,7 +17,6 @@ connectDB()
 .catch((error) => {
     console.log("MongoDb connection failed !!", error);
 })
-
 
 
 
@@ -57,5 +55,3 @@ const app = express();
     }
 })()    
 */
-
-
