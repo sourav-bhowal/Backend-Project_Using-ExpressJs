@@ -257,10 +257,19 @@ export const refreshAccessToken = asyncHandler( async(req, res) => {
 } );
 
 
+export const getCurrentUser = asyncHandler( async(req, res) => {
+
+    // returning the current user
+    return res
+    .status(200)
+    .json(new apiResponse(200, req.user, "Current user fetched successfully."));
+} );
+
+
 export const changeCurrentUserPassword = asyncHandler( async(req, res) => {
     
     // Taking the old and new password from the user using req.body
-    const {oldPassword, newPassword} = req.body;
+    const { oldPassword, newPassword } = req.body;
 
     // finding the user in DB from req.body as user is already logged in if he had to change his password
     const user = await User.findById(req.user?._id);
@@ -284,15 +293,6 @@ export const changeCurrentUserPassword = asyncHandler( async(req, res) => {
     .json(new apiResponse(200, {}, "Password changed successfully."))
 
 
-} );
-
-
-export const getCurrentUser = asyncHandler( async(req, res) => {
-
-    // returning the current user
-    return res
-    .status(200)
-    .json(new apiResponse(200, req.user, "Current user fetched successfully."));
 } );
 
 
