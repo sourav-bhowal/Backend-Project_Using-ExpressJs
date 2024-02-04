@@ -50,7 +50,7 @@ const userSchema = new mongoose.Schema({
 }, {timestamps: true});
 
 
-// using bcrypt to encrypt the password when their is a change in the "password field".
+// using bcrypt to encrypt the password when their is a change in the "password field". as its a "pre" it works automatically
 userSchema.pre("save", async function (next) {
     if(!this.isModified("password")) return next();
 
@@ -65,6 +65,8 @@ userSchema.pre("save", async function (next) {
 userSchema.methods.isPasswordCorrect = async function (password){   
     return await bcrypt.compare(password, this.password)
 };
+
+
 // using jwt to generate AccessToken
 userSchema.methods.generateAccessToken = function(){
     return jwt.sign(
@@ -80,6 +82,8 @@ userSchema.methods.generateAccessToken = function(){
         }
     )
 };
+
+
 // using jwt to generate RefreshToken
 userSchema.methods.generateRefreshToken = function(){
     return jwt.sign(

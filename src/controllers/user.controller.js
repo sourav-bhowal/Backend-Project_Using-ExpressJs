@@ -5,7 +5,7 @@ import {deleteOnCloudinary, uploadOnCloudinary} from "../utils/cloudinary.js";
 import apiResponse from "../utils/apiResponse.js";
 import { generateAccessAndRefreshTokens } from "../utils/generateAccessAndRefreshTokens.js";
 import jwt from "jsonwebtoken";
-import { response } from "express";
+import mongoose from "mongoose";
 
 
 export const registerUser = asyncHandler( async(req, res) => {
@@ -436,7 +436,7 @@ export const getUserChannelProfile = asyncHandler( async(req, res) => {
         {   // second pipeline
             $lookup: {
                 from: "subscriptions", // As "Subscription" model gets converted to "subscriptions" when stored in MongoDB
-                local: "_id",
+                localField: "_id",
                 foreignField: "channel",
                 as: "subscribers"
             }
@@ -444,15 +444,15 @@ export const getUserChannelProfile = asyncHandler( async(req, res) => {
         {   // third pipeline
             $lookup: {
                 from: "subscriptions", // As "Subscription" model gets converted to "subscriptions" when stored in MongoDB
-                local: "_id",
+                localField: "_id",
                 foreignField: "subscriber",
                 as: "subscribedTo"
             }
         },
         {   // fourth pipeline
-            $addFields: {
+            $addFields: {   // "addFields" is used to create fields that are not there but we create for our use
                 subscribersCount: {
-                    $size: "$subscribers" // we r getting the number of subs from the "as field" of "first pipeline". "$ sign" as it is a field now
+                    $size: "$subscribers" // we r getting the number of subs from the "as" field of "first pipeline". "$ sign" as it is a field now
                 },
                 channelSubscribedToCount: {
                     $size: "$subscribedTo"
@@ -498,7 +498,7 @@ export const getWatchHistory = asyncHandler( async(req, res) => {
     const user = await User.aggregate([
         {
             $match: {
-                _id: new mongoose.Types.ObjectId(req.user._id), // we need to manually create Mongoose object_id as in aggregate pipeline we directly connect with MongoDB
+                _id: new mongoose.Types.ObjectId(req.user._id), // we need to manually create Mongoose object_id as in aggregate pipeline we directly connect with MongoDB whereas in only condition we connect througn Mongoose
             }
         },
         {
