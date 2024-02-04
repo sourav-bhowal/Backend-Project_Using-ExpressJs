@@ -5,6 +5,7 @@ import {deleteOnCloudinary, uploadOnCloudinary} from "../utils/cloudinary.js";
 import apiResponse from "../utils/apiResponse.js";
 import { generateAccessAndRefreshTokens } from "../utils/generateAccessAndRefreshTokens.js";
 import jwt from "jsonwebtoken";
+import { response } from "express";
 
 
 export const registerUser = asyncHandler( async(req, res) => {
@@ -488,6 +489,58 @@ export const getUserChannelProfile = asyncHandler( async(req, res) => {
     return res
     .status(200)
     .json(new apiResponse(200, channel[0], "User channel fetched successfully."));  // [0] returning only the 1st object of "channel" for easy work of frontend engg.
+
+} );
+
+
+export const getWatchHistory = asyncHandler( async(req, res) => {
+
+    const user = await User.aggregate([
+        {
+            $match: {
+                _id: new mongoose.Types.ObjectId(req.user._id), // we need to manually create Mongoose object_id as in aggregate pipeline we directly connect with MongoDB
+            }
+        },
+        {
+            $lookup: {
+                from: "videos",
+                localField: "watchHistory",
+                foreignField: "_id",
+                as: "userWatchHistory",
+                pipeline: [ // nested or sub pipeline we r inside videos
+                    {
+                        $lookup: {
+                            from: "users",
+                            localField: "owner",
+                            foreignField: "_id",
+                            as: "owner",
+                            pipeline: [ // nested or sub pipeline we r inside owner
+                                {
+                                    $project: {
+                                        fullname: 1,
+                                        username: 1,
+                                        avatar: 1,
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        $addFields: {   // as we will get an "owner array" after "lookup" from the above pipeline it is hard for frontend engg. So we created a pipeline addFields "owner" that contain the data from owner and we can easily take the data out.
+                            owner: {
+                                $first: "$owner"    // "$owner" as owner is a field now
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ]);
+
+    // Returning Response
+    return res
+    .status(200)
+    .json(new apiResponse(200, user[0].userWatchHistory, "watch history fetched successfully." ));
 
 } );
 
