@@ -353,7 +353,7 @@ export const updateUserAvatar = asyncHandler( async(req, res) => {
     const user = await User.findByIdAndUpdate(
         req.user?._id,
         {
-            $set: {avatar: [newAvatar.url, newAvatar.public_id]}  // we only need the new avatar url not whole object
+            $set: {avatar: [newAvatar.url, newAvatar.public_id]}  // we only need the new avatar url & public_id not whole object
         },
         {new: true}
     ).select("-password");  // we dont want password field
@@ -396,7 +396,7 @@ export const updateUserCoverImage = asyncHandler( async(req, res) => {
     const user = await User.findByIdAndUpdate(
         req.user?._id,
         {
-            $set: {coverImage: newCoverImage.url}  // we only need the new cover image url not whole object
+            $set: {coverImage: [newCoverImage.url, newCoverImage.public_id]}  // we only need the new cover image url & public_id not whole object
         },
         {new: true}
     ).select("-password");  // we dont want password field
@@ -412,6 +412,82 @@ export const updateUserCoverImage = asyncHandler( async(req, res) => {
     return res
     .status(200)
     .json(new apiResponse(200, user, "CoverImage updated successfully."));
+
+} );
+
+
+export const getUserChannelProfile = asyncHandler( async(req, res) => {
+
+    // Get "username or the channel we want" from the user through req.params
+    const { username } = req.params;
+
+    if(!username?.trim()) {
+        throw new apiError(400, "Username is missing.");
+    }
+
+    // Writing the aggregation pipelines
+    const channel = await User.aggregate([
+        {   // first pipeline
+            $match: {
+                username: username?.toLowerCase()
+            }
+        },
+        {   // second pipeline
+            $lookup: {
+                from: "subscriptions", // As "Subscription" model gets converted to "subscriptions" when stored in MongoDB
+                local: "_id",
+                foreignField: "channel",
+                as: "subscribers"
+            }
+        },
+        {   // third pipeline
+            $lookup: {
+                from: "subscriptions", // As "Subscription" model gets converted to "subscriptions" when stored in MongoDB
+                local: "_id",
+                foreignField: "subscriber",
+                as: "subscribedTo"
+            }
+        },
+        {   // fourth pipeline
+            $addFields: {
+                subscribersCount: {
+                    $size: "$subscribers" // we r getting the number of subs from the "as field" of "first pipeline". "$ sign" as it is a field now
+                },
+                channelSubscribedToCount: {
+                    $size: "$subscribedTo"
+                },
+                isSubscribed: {
+                    $cond: {
+                        if: {$in: [req.user?._id, "$subscribers.subscriber"]},
+                        then: true,
+                        else: false
+                    }
+                },
+            }
+        },
+        {   // fifth pipeline
+            $project: { // "project" is used to give access only to the selected fields that we want
+                fullname: 1,
+                username: 1,
+                subscribersCount: 1,
+                channelSubscribedToCount: 1,
+                isSubscribed: 1,
+                avatar: 1,
+                coverImage: 1,
+                email: 1,
+                createdAt: 1
+            }
+        }
+    ]);
+
+    if (!channel?.length) {
+        throw new apiError(404, "Channel not available.");
+    }
+
+    // Returning the response
+    return res
+    .status(200)
+    .json(new apiResponse(200, channel[0], "User channel fetched successfully."));  // [0] returning only the 1st object of "channel" for easy work of frontend engg.
 
 } );
 
