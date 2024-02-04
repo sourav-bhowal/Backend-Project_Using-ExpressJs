@@ -23,13 +23,17 @@ const userSchema = new mongoose.Schema({
         trim: true,
         index: true,
     },
-    avatar: {
-        type: String,   // cloudinary url for avatar image
-        required: [true, "Avatar is required."],
-    },
-    coverImage: {
-        type: String,   // cloudinary url for avatar image 
-    },
+    avatar: [
+        {
+            type: String,   // cloudinary url & public_id for avatar image
+            required: [true, "Avatar is required."]
+        }
+    ],
+    coverImage: [
+        {
+        type: String,   // cloudinary url & public_id for avatar image 
+        }
+    ],
     watchHistory: [
         {
             type: mongoose.Schema.Types.ObjectId,

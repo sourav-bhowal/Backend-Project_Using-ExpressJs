@@ -1,7 +1,7 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import apiError from "../utils/apiError.js";
 import { User } from "../models/user.models.js";
-import {uploadOnCloudinary} from "../utils/cloudinary.js";
+import {deleteOnCloudinary, uploadOnCloudinary} from "../utils/cloudinary.js";
 import apiResponse from "../utils/apiResponse.js";
 import { generateAccessAndRefreshTokens } from "../utils/generateAccessAndRefreshTokens.js";
 import jwt from "jsonwebtoken";
@@ -57,13 +57,14 @@ export const registerUser = asyncHandler( async(req, res) => {
 
 
     // Algo for getting the files from [0] position i.e. the first position
+
     // const avatarLocalPath = req.files?.avatar[0]?.path; -- not working //
     // const coverImageLocalPath = req.files?.coverImage[0]?.path; --- not working //
-    // we are writing "files" instead of "file" as we are taking both files i.e. "avatar" & "coverImage"
+    
     let avatarLocalPath;
     if (req.files && Array.isArray(req.files.avatar) && req.files.avatar.length > 0) {
         avatarLocalPath = req.files.avatar[0].path;
-    }
+    } // we are writing "files" instead of "file" as we are taking both files i.e. "avatar" & "coverImage"
 
     let coverImageLocalPath;
     if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
@@ -87,8 +88,8 @@ export const registerUser = asyncHandler( async(req, res) => {
     // Saving the data of the USER on the DB
     const user = await User.create({ 
         fullname,
-        avatar: avatar.url, // storing only avatar url on the DB. URL is coming from cloudinary
-        coverImage: coverImage?.url || "", // "?" as their might not be a cover image always
+        avatar: [avatar.url, avatar.public_id], // storing only avatar url, public_id on the DB. URL, public_id is coming from cloudinary
+        coverImage: [coverImage?.url, coverImage?.public_id] || "", // "?" as their might not be a cover image always
         email,
         password,
         username: username.toLowerCase()
@@ -345,15 +346,24 @@ export const updateUserAvatar = asyncHandler( async(req, res) => {
         throw new apiError(404, "Avatar file not found");
     }
 
+    // storing old avatar public_id from DB in a variable
+    const oldAvatarPublicId = req.user?.avatar[1]; // [1] as public_id is stored in the 2nd block of the avatar array
+
     // finding & updating the user on the DB
     const user = await User.findByIdAndUpdate(
         req.user?._id,
         {
-            $set: {avatar: newAvatar.url}  // we only need the new avatar url not whole object
+            $set: {avatar: [newAvatar.url, newAvatar.public_id]}  // we only need the new avatar url not whole object
         },
         {new: true}
     ).select("-password");  // we dont want password field
-
+    
+    // deleting old avatar on cloudinary
+    const oldAvatarDeleted = await deleteOnCloudinary(oldAvatarPublicId);
+    
+    if(!oldAvatarDeleted) {
+        throw new apiError(404, "Old avatar not deleted");
+    }
 
     // Returning response
     return res
@@ -365,21 +375,24 @@ export const updateUserAvatar = asyncHandler( async(req, res) => {
 
 export const updateUserCoverImage = asyncHandler( async(req, res) => {
 
-    // taking the new cover image file
+    // Taking the new cover image file
     const newCoverImageLocalPath = req.file?.path; // we are writing "file" instead of "files" as we are changing only one file i.e. "avatar"
 
     if (!newCoverImageLocalPath) {
         throw new apiError(404, "Cover Image file not found.");
     }
 
-    // uploading new cover-image on cloudinary
+    // Uploading new cover-image on cloudinary
     const newCoverImage = await uploadOnCloudinary(newCoverImageLocalPath);
 
     if(!newCoverImage.url) { // we only need the new cover image url not whole object
         throw new apiError(404, "Cover Image file not found");
     }
 
-    // finding & updating the user on the DB
+    // storing old coverImage public_id from DB in a variable
+    const oldCoverImagePublicId = req.user?.coverImage[1]; // [1] as public_id is stored in the 2nd block of the coverImage array
+
+    // Finding & updating the user on the DB
     const user = await User.findByIdAndUpdate(
         req.user?._id,
         {
@@ -388,6 +401,12 @@ export const updateUserCoverImage = asyncHandler( async(req, res) => {
         {new: true}
     ).select("-password");  // we dont want password field
 
+    // deleting old avatar on cloudinary
+    const oldCoverImageDeleted = await deleteOnCloudinary(oldCoverImagePublicId);
+    
+    if(!oldCoverImageDeleted) {
+        throw new apiError(404, "Old CoverImage not deleted");
+    }
 
     // Returning response
     return res
