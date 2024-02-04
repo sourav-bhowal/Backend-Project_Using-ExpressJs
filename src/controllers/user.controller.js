@@ -401,7 +401,7 @@ export const updateUserCoverImage = asyncHandler( async(req, res) => {
         {new: true}
     ).select("-password");  // we dont want password field
 
-    // deleting old avatar on cloudinary
+    // deleting old coverImage on cloudinary
     const oldCoverImageDeleted = await deleteOnCloudinary(oldCoverImagePublicId);
     
     if(!oldCoverImageDeleted) {
