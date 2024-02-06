@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema({
     ],
     coverImage: [
         {
-        type: String,   // cloudinary url & public_id for avatar image 
+            type: String,   // cloudinary url & public_id for avatar image 
         }
     ],
     watchHistory: [
