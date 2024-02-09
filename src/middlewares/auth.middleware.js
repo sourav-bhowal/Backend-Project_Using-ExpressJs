@@ -22,7 +22,7 @@ export const verifyJWT = asyncHandler( async(req, res, next) => {   // since "re
         }
     
         req.user = user;
-        next(); // "next" procceds for next step that is the "logout function" in "user.controller.js"
+        next(); // "next" procceds for next step 
     } 
     catch (error) {
         throw new apiError(401, error?.message || "Invalid Access Token");

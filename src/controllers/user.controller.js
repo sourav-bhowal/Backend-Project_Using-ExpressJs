@@ -89,8 +89,8 @@ export const registerUser = asyncHandler( async(req, res) => {
     // Saving the data of the USER on the DB
     const user = await User.create({ 
         fullname,
-        avatar: [avatar.url, avatar.public_id], // storing only avatar url, public_id on the DB. URL, public_id is coming from cloudinary
-        coverImage: [coverImage?.url, coverImage?.public_id] || "", // "?" as their might not be a cover image always
+        avatar: {url: avatar.url, public_id: avatar.public_id}, // storing only avatar url, public_id on the DB. URL, public_id is coming from cloudinary
+        coverImage: {url: coverImage?.url, public_id: coverImage?.public_id} || "", // "?" as their might not be a cover image always
         email,
         password,
         username: username.toLowerCase()
@@ -100,7 +100,7 @@ export const registerUser = asyncHandler( async(req, res) => {
     // Check for newly created user
     const createdUser = await User.findById(user._id).select( 
         // by default all fields are selected in "select" so "minus sign" is used to exclude the fields we dont want to select
-        "-password -refreshToken"   
+        "-password -refreshToken -avatar._id -coverImage._id"   
     );
 
     if(!createdUser){
@@ -156,7 +156,7 @@ export const loginUser = asyncHandler( async(req, res) => {
     const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id);
 
     // taking the user from DB
-    const loggedInUser = await User.findById(user._id).select("-password -refreshToken");
+    const loggedInUser = await User.findById(user._id).select("-password -refreshToken -avatar._id -coverImage._id");
     // Declaring few options
     const options = {
         httpOnly: true,
@@ -320,7 +320,7 @@ export const updateUserDetails = asyncHandler( async(req, res) => {
             $set: {fullname, email} // you can write like this also
         },
         {new: true}
-    ).select("-password") // we don't want password field
+    ).select("-password -avatar._id -coverImage._id") // we don't want password field
 
 
     // Returning response
@@ -343,21 +343,21 @@ export const updateUserAvatar = asyncHandler( async(req, res) => {
     // uploading new avatar on cloudinary
     const newAvatar = await uploadOnCloudinary(newAvatarLocalPath);
 
-    if(!newAvatar.url) { // we only need the new avatar url not whole object
+    if(!newAvatar) { // we only need the new avatar url not whole object
         throw new apiError(404, "Avatar file not found");
     }
 
     // storing old avatar public_id from DB in a variable
-    const oldAvatarPublicId = req.user?.avatar[1]; // [1] as public_id is stored in the 2nd block of the avatar array
+    const oldAvatarPublicId = req.user?.avatar.public_id;
 
     // finding & updating the user on the DB
     const user = await User.findByIdAndUpdate(
         req.user?._id,
         {
-            $set: {avatar: [newAvatar.url, newAvatar.public_id]}  // we only need the new avatar url & public_id not whole object
+            $set: {avatar: {url: newAvatar.url, public_id: newAvatar.public_id}}  // we only need the new avatar url & public_id not whole object
         },
         {new: true}
-    ).select("-password");  // we dont want password field
+    ).select("-password -avatar._id -coverImage._id");  // we dont want password field
     
     // deleting old avatar on cloudinary
     const oldAvatarDeleted = await deleteOnCloudinary(oldAvatarPublicId);
@@ -386,21 +386,20 @@ export const updateUserCoverImage = asyncHandler( async(req, res) => {
     // Uploading new cover-image on cloudinary
     const newCoverImage = await uploadOnCloudinary(newCoverImageLocalPath);
 
-    if(!newCoverImage.url) { // we only need the new cover image url not whole object
+    if(!newCoverImage) { // we only need the new cover image url not whole object
         throw new apiError(404, "Cover Image file not found");
     }
 
     // storing old coverImage public_id from DB in a variable
-    const oldCoverImagePublicId = req.user?.coverImage[1]; // [1] as public_id is stored in the 2nd block of the coverImage array
-
+    const oldCoverImagePublicId = req.user?.coverImage.public_id;
     // Finding & updating the user on the DB
     const user = await User.findByIdAndUpdate(
         req.user?._id,
         {
-            $set: {coverImage: [newCoverImage.url, newCoverImage.public_id]}  // we only need the new cover image url & public_id not whole object
+            $set: {coverImage: {url: newCoverImage.url, public_id: newCoverImage.public_id}}  // we only need the new cover image url & public_id not whole object
         },
         {new: true}
-    ).select("-password");  // we dont want password field
+    ).select("-password -avatar._id -coverImage._id");  // we dont want password field
 
     // deleting old coverImage on cloudinary
     const oldCoverImageDeleted = await deleteOnCloudinary(oldCoverImagePublicId);
@@ -543,5 +542,4 @@ export const getWatchHistory = asyncHandler( async(req, res) => {
     .json(new apiResponse(200, user[0].userWatchHistory, "watch history fetched successfully." ));
 
 } );
-
 
