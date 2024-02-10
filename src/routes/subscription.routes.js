@@ -7,11 +7,8 @@ const subscriptionRouter = Router();
 
 subscriptionRouter.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
 
-subscriptionRouter
-    .route("/c/:channelId")
-    .get(getSubscribedChannels)
-    .post(toggleSubscription);
+subscriptionRouter.route("/c/:channelId").get(getUserChannelSubscribers).post(toggleSubscription);
 
-subscriptionRouter.route("/u/:subscriberId").get(getUserChannelSubscribers);
+subscriptionRouter.route("/u/:subscriberId").get(getSubscribedChannels);
 
 export default subscriptionRouter
