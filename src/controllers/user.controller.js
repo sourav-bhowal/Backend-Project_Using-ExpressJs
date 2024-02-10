@@ -111,9 +111,7 @@ export const registerUser = asyncHandler( async(req, res) => {
     // Returning the Response
     return res
     .status(201)
-    .json(
-        new apiResponse(200, createdUser, "user registered successfully")
-    )
+    .json(new apiResponse(200, createdUser, "user registered successfully"))
    
 } );
 
@@ -157,6 +155,7 @@ export const loginUser = asyncHandler( async(req, res) => {
 
     // taking the user from DB
     const loggedInUser = await User.findById(user._id).select("-password -refreshToken -avatar._id -coverImage._id");
+    
     // Declaring few options
     const options = {
         httpOnly: true,

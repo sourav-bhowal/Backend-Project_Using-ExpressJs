@@ -112,7 +112,7 @@ export const updateTweet = asyncHandler(async (req, res) => {
     // returning response
     return res
     .status(200)
-    .json(new apiResponse(200, updatedTweet, "Tweet updated successfully."))
+    .json(new apiResponse(200, updatedTweet, "Tweet updated successfully."));
 
 });
 
@@ -120,24 +120,28 @@ export const updateTweet = asyncHandler(async (req, res) => {
 export const deleteTweet = asyncHandler(async (req, res) => {
     //TODO: delete tweet
 
+    // taking the tweetId
     const { tweetId } = req.params;
 
     if (!isValidObjectId(tweetId)) {
         throw new apiError(400, "Invalid tweetId")
     }
 
+    // searching for the tweet in DB
     const deleteTweet = await Tweet.findById(tweetId);
 
     if (!deleteTweet) {
         throw new apiError(404, "Invalid tweetId.");
     }
 
+    // deleting the tweet if looged in user is the tweet owner
     if (deleteTweet.owner.toString() === req.user?._id.toString()) {
         await Tweet.findByIdAndDelete(tweetId)
     } else {
         throw new apiError(404, "Unauthorized access.");
     }
 
+    // returning response
     return res
     .status(200)
     .json(new apiResponse(200, {}, "Tweet deleted successfully."));
