@@ -170,7 +170,8 @@ export const getLikedVideos = asyncHandler(async (req, res) => {
                 likedVideo: {
                     title: 1,
                     description: 1,
-                    views: 1
+                    views: 1,
+                    owner: 1
                 }
             }
         }
