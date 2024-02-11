@@ -7,8 +7,24 @@ import asyncHandler from "../utils/asyncHandler.js"
 
 export const getVideoComments = asyncHandler(async (req, res) => {
     //TODO: get all comments for a video
-    const {videoId} = req.params
-    const {page = 1, limit = 10} = req.query
+    const {videoId} = req.params;
+    const {page = 1, limit = 10} = req.query;
+
+    if (!isValidObjectId(videoId)) {
+        throw new apiError(400, "Invalid video id")
+    }
+
+    // search for video in DB
+    const video = await Video.findById(videoId);
+
+    if (!video) {
+        throw new apiError(400, "Video not found.");
+    }
+
+    // get comments for the video
+    await Comment.find({
+        video: videoId
+    })
 
 } );
 

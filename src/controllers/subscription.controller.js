@@ -149,6 +149,10 @@ export const getSubscribedChannels = asyncHandler(async (req, res) => {
         }
     ]);
 
+    if (!subscribedChannels.length) {
+        throw new apiError(404, "No channels subscribed");
+    }
+
     // returning response
     return res
     .status(200)

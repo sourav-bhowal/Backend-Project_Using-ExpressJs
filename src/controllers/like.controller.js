@@ -32,7 +32,7 @@ export const toggleVideoLike = asyncHandler(async (req, res) => {
     });
 
     if (videoAlreadyLiked) {
-        await Like.findByIdAndDelete(videoAlreadyLiked);
+        await Like.findByIdAndDelete(videoAlreadyLiked._id);
 
         return res
         .status(200)
@@ -77,7 +77,7 @@ export const toggleCommentLike = asyncHandler(async (req, res) => {
     });
 
     if (commentAlreadyLiked) {
-        await Like.findByIdAndDelete(commentAlreadyLiked);
+        await Like.findByIdAndDelete(commentAlreadyLiked._id);
 
     return res
     .status(200)
@@ -124,7 +124,7 @@ export const toggleTweetLike = asyncHandler(async (req, res) => {
     });
 
     if (tweetAlreadyLiked) {
-        await Like.findByIdAndDelete(tweetAlreadyLiked);
+        await Like.findByIdAndDelete(tweetAlreadyLiked._id);
 
     return res
     .status(200)
@@ -153,7 +153,7 @@ export const getLikedVideos = asyncHandler(async (req, res) => {
     const likedVideos = await Like.aggregate([
         {
             $match: {
-                likedBy: new mongoose.Types.ObjectId(req.user._id), // we need to manually create Mongoose object_id as in aggregate pipeline we directly connect with MongoDB whereas in only condition we connect througn Mongoose
+                likedBy: new mongoose.Types.ObjectId(req.user?._id), // we need to manually create Mongoose object_id as in aggregate pipeline we directly connect with MongoDB whereas in only condition we connect througn Mongoose
                 video: {$exists: true}  // it excludes comments & tweets
             }
         },
@@ -167,6 +167,7 @@ export const getLikedVideos = asyncHandler(async (req, res) => {
         },
         {
             $project: {
+                _id: 0,
                 likedVideo: {
                     _id: 1,
                     title: 1,
