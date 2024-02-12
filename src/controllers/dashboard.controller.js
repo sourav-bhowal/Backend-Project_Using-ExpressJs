@@ -85,6 +85,16 @@ export const getChannelVideos = asyncHandler(async (req, res) => {
             $match: {
                 owner: new mongoose.Types.ObjectId(channel)
             }
+        },
+        {
+            $project: {
+                _id: 1,
+                title: 1,
+                description: 1,
+                videoFile: 1,
+                thumbnail: 1,
+                createdAt: 1,
+            }
         }
     ]);
 

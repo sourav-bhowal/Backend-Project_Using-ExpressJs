@@ -6,11 +6,15 @@ import apiError from "../utils/apiError.js"
 import apiResponse from "../utils/apiResponse.js"
 import asyncHandler from "../utils/asyncHandler.js"
 import { uploadOnCloudinary, deleteOnCloudinary, deleteOnCloudinaryVideo } from "../utils/cloudinary.js"
+import { Like } from "../models/like.models.js"
+import { Playlist } from "../models/playlist.models.js"
 
 
 export const getAllVideos = asyncHandler(async (req, res) => {
     const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query
     //TODO: get all videos based on query, sort, pagination
+    
+
 
 })
 
@@ -199,10 +203,39 @@ export const deleteVideo = asyncHandler(async (req, res) => {
 
     // if the video owner and current logged in user are same the delete the video & its assets
     if (deleteVideo.owner.toString() === req.user._id.toString()) {
+
         await deleteOnCloudinary(deleteVideoThumbnail);
+
         await deleteOnCloudinaryVideo(deleteVideoFile);
-        await Video.findByIdAndDelete(videoId);    
-    } else {
+
+        const deletedVideo = await Video.findByIdAndDelete(videoId);
+
+        const comments = await Comment.find({ video: deletedVideo._id});
+
+        const commentsIds = comments.map((comment) => comment._id);
+        
+        // if video is deleted delete everything related to the video likes, comments, remove it fom playlist, comment likes
+        if (deletedVideo) {
+            await Like.deleteMany({video: deletedVideo._id});
+            await Like.deleteMany({comment: {$in: commentsIds}});
+            await Comment.deleteMany({video: deletedVideo._id});
+            const playlists = await Playlist.find({videos: deletedVideo._id});
+
+            for (const playlist of playlists) {
+                await Playlist.findByIdAndUpdate(
+                    playlist._id,
+                    {
+                        $pull: {videos: deletedVideo._id}
+                    },
+                    {new: true}
+                )
+            }
+        }
+        else {
+            throw new apiError(400, "Something went wrong while deleting the video.");
+        }
+    } 
+    else {
         throw new apiError(400, "Unauthorized access. You are not the owner of the video.");
     }
 

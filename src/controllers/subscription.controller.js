@@ -5,7 +5,7 @@ import apiError from "../utils/apiError.js"
 import apiResponse from "../utils/apiResponse.js"
 import asyncHandler from "../utils/asyncHandler.js"
 
-
+// controller to subscribe or unsubscribe a channel
 export const toggleSubscription = asyncHandler(async (req, res) => {
     // TODO: toggle subscription
 
@@ -21,6 +21,10 @@ export const toggleSubscription = asyncHandler(async (req, res) => {
 
     if (!channel) {
         throw new apiError(400, "Channel not found.");
+    }
+
+    if (channel._id.toString() === req.user?._id.toString()) {
+        throw new apiError(400, "You cannot subscribe to your own channel.");
     }
 
     // check if channel is already subscribed if not already subscribed subscribe the channel
