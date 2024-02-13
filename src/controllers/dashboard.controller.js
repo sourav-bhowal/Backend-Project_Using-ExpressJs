@@ -46,9 +46,17 @@ export const getChannelStats = asyncHandler(async (req, res) => {
            $group: {
                 _id: null,
                 TotalVideos: {$sum : 1},    // sum to get all videos of the user
-                TotalSubscribers: {$first:{$size: "$total_subscribers"}},
-                TotalViews: {$sum : "$views"},
-                TotalLikes: {$first: {$size: "$video_likes"}},
+                TotalViews: {$sum : "$views"},    
+                TotalSubscribers: {
+                    $first: {
+                        $size: "$total_subscribers"
+                    }
+                },
+                TotalLikes: {
+                    $first: {
+                        $size: "$video_likes"
+                    }
+                },
 
            }
         },
