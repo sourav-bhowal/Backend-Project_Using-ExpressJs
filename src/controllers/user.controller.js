@@ -524,7 +524,7 @@ export const getWatchHistory = asyncHandler( async(req, res) => {
                         }
                     },
                     {
-                        $addFields: {   // as we will get an "owner array" after "lookup" from the above pipeline it is hard for frontend engg. So we created a pipeline addFields "owner" that contain the data from owner and we can easily take the data out.
+                        $addFields: {   // as we will get an "owner array" after "lookup" from the above pipeline it is hard for frontend engg. So we created a pipeline addFields "owner" that contain the data of the 1st owner and we can easily take the data out.
                             owner: {
                                 $first: "$owner"    // "$owner" as owner is a field now
                             }

@@ -11,9 +11,13 @@ import { Playlist } from "../models/playlist.models.js"
 
 
 export const getAllVideos = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query
     //TODO: get all videos based on query, sort, pagination
     
+    const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
+    
+    const searchedVideos = Video.aggregate([
+        
+    ]);
 
 
 })
@@ -212,7 +216,7 @@ export const deleteVideo = asyncHandler(async (req, res) => {
 
         const comments = await Comment.find({ video: deletedVideo._id});
 
-        const commentsIds = comments.map((comment) => comment._id);
+        const commentsIds = comments.map((comment) => comment._id); // taking out the commentId
         
         // if video is deleted delete everything related to the video likes, comments, remove it fom playlist, comment likes
         if (deletedVideo) {

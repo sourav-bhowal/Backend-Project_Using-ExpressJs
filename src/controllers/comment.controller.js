@@ -214,6 +214,9 @@ export const deleteComment = asyncHandler(async (req, res) => {
         if (deleteComment) {    
             await Like.deleteMany({comment: deletedComment._id})
         }
+        else {
+            throw new apiError(404, "Something went wrong while deleting comment.")
+        }
     } else {
         throw new apiError(404, "Unauthorized access.");
     }
