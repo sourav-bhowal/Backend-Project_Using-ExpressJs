@@ -70,8 +70,8 @@ export const getAllVideos = asyncHandler(async (req, res) => {
         options,
     );
 
-    if (!videos) {
-        throw new apiError(400, "No videos matched the query.")
+    if (videos.totalDocs === 0) {   // totalDocs is available as we are using aggregate paginate
+        throw new apiError(400, "No videos matched the searched query.")
     }
 
     // returning response
