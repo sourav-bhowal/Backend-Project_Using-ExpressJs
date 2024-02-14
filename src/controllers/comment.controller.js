@@ -80,7 +80,7 @@ export const getVideoComments = asyncHandler(async (req, res) => {
         },
     ]);
 
-    // defining options
+    // defining options for aggregate paginate
     const options = {
         page: parseInt(page, 10),
         limit: parseInt(limit, 10)

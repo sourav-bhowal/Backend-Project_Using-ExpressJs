@@ -1,7 +1,6 @@
 import mongoose, {isValidObjectId} from "mongoose"
 import {Video} from "../models/video.models.js"
 import {User} from "../models/user.models.js"
-// import {Like} from "../models/like.models.js"
 import apiError from "../utils/apiError.js"
 import apiResponse from "../utils/apiResponse.js"
 import asyncHandler from "../utils/asyncHandler.js"
@@ -15,12 +14,72 @@ export const getAllVideos = asyncHandler(async (req, res) => {
     
     const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
     
-    const searchedVideos = Video.aggregate([
-        
+    if (page < 1 && limit > 10) {
+        throw new apiError(400, "Invalid page number or limit")
+    }
+
+    if (!query && !query?.trim()) {
+        throw new apiError(400, "Specify query");
+    }
+
+    if (!isValidObjectId(userId)) {
+        throw new apiError(400, "Invalid UserId.")
+    }
+
+    // find the user from DB
+    const user = await User.findById(userId);
+
+    if (!user) {
+        throw new apiError(404, "User not found");
+    }
+
+    // defining search criteria
+    const searchCriteria = {};
+    if (sortBy && sortType) {
+        searchCriteria[sortBy] = sortType === "asc" ? 1 : -1;   //assigning the search criteria
+    } else {
+        searchCriteria["createdAt"] = -1; 
+    }
+
+    // defining options for aggregate paginate 
+    const options = {
+        page : parseInt(page, 10),
+        limit : parseInt(limit, 10),
+        sort: searchCriteria
+    };
+
+    // defining the pipeline
+    const videosAggregation = Video.aggregate([
+        {
+            $match: {
+                owner: new mongoose.Types.ObjectId(user)
+            }
+        },
+        {
+            $match: {
+                title: {
+                    $regex: query    
+                }
+            }
+        },   
     ]);
 
+    // using aggregate paginate
+    const videos = await Video.aggregatePaginate(
+        videosAggregation,
+        options,
+    );
 
-})
+    if (!videos) {
+        throw new apiError(400, "No videos matched the query.")
+    }
+
+    // returning response
+    return res
+    .status(200)
+    .json(new apiResponse(200, videos, "videos fetched successfully."))
+
+} );
 
 
 export const publishVideo = asyncHandler(async (req, res) => {
