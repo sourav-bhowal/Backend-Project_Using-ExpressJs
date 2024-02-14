@@ -57,7 +57,7 @@ export const getAllVideos = asyncHandler(async (req, res) => {
         },
         {
             $match: {
-                title: {
+                title: {    // match title of the video with the query using $regex
                     $regex: query    
                 }
             }
