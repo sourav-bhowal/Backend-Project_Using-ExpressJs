@@ -7,6 +7,7 @@ import asyncHandler from "../utils/asyncHandler.js"
 import { uploadOnCloudinary, deleteOnCloudinary, deleteOnCloudinaryVideo } from "../utils/cloudinary.js"
 import { Like } from "../models/like.models.js"
 import { Playlist } from "../models/playlist.models.js"
+import {Comment } from "../models/comment.models.js"
 
 
 export const getAllVideos = asyncHandler(async (req, res) => {
