@@ -133,7 +133,7 @@ export const addVideoToPlaylist = asyncHandler(async (req, res) => {
         videoPlaylist = await Playlist.findByIdAndUpdate(
             playlistId,
             {
-               $push: {videos: video._id}   // pushing the video into the "videos" array of the playlist
+               $addToSet: {videos: video._id}   // pushing the video into the "videos" array of the playlist using "$addToSet method" as we want to push the video to the playlist only if it doesn't already exists in the playlist.
             },
             {new: true}
         )
