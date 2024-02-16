@@ -287,7 +287,7 @@ export const deleteVideo = asyncHandler(async (req, res) => {
 
         const commentsIds = comments.map((comment) => comment._id); // taking out the commentId
         
-        // if video is deleted delete everything related to the video likes, comments, remove it fom playlist, comment likes
+        // if video is deleted delete everything related to the video: likes, comments, remove it fom playlist, comment likes, remove it from watchHistory
         if (deletedVideo) {
             await Like.deleteMany({video: deletedVideo._id});
             await Like.deleteMany({comment: {$in: commentsIds}});
