@@ -293,7 +293,7 @@ export const deleteVideo = asyncHandler(async (req, res) => {
             await Like.deleteMany({comment: {$in: commentsIds}});
             await Comment.deleteMany({video: deletedVideo._id});
             const playlists = await Playlist.find({videos: deletedVideo._id});
-            const watchHistory = await User.find({watchHistory: deletedVideo._id});
+            const watchHistorys = await User.find({watchHistory: deletedVideo._id});
 
             for (const playlist of playlists) {
                 await Playlist.findByIdAndUpdate(
@@ -305,7 +305,7 @@ export const deleteVideo = asyncHandler(async (req, res) => {
                 )
             }
 
-            for (const user of watchHistory) {
+            for (const user of watchHistorys) {
                 await User.findByIdAndUpdate(
                     user._id,
                     {
