@@ -172,7 +172,15 @@ export const getVideoById = asyncHandler(async (req, res) => {
                 $addToSet: {watchHistory: searchedVideo._id}    // "$addToSet method" only pushes unique value to an array i.e. it will not push a video in watchHistory if it already exists in the watchHistory.
             },
             {new: true}
-        )
+        );
+
+        // await Video.findByIdAndUpdate(
+        //     searchedVideo,
+        //     {
+        //         $inc: {views: 1}
+        //     },
+        //     {new: true}
+        // )
     }
     else {
         throw new apiError(400, "Video not found.");
@@ -294,7 +302,7 @@ export const deleteVideo = asyncHandler(async (req, res) => {
             await Like.deleteMany({comment: {$in: commentsIds}});
             await Comment.deleteMany({video: deletedVideo._id});
             const playlists = await Playlist.find({videos: deletedVideo._id});
-            const watchHistorys = await User.find({watchHistory: deletedVideo._id});
+            const users = await User.find({watchHistory: deletedVideo._id});
 
             for (const playlist of playlists) {
                 await Playlist.findByIdAndUpdate(
@@ -306,7 +314,7 @@ export const deleteVideo = asyncHandler(async (req, res) => {
                 )
             }
 
-            for (const user of watchHistorys) {
+            for (const user of users) {
                 await User.findByIdAndUpdate(
                     user._id,
                     {
