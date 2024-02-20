@@ -32,7 +32,7 @@ Build a similar backend as Youtube and Twitter that covers almost all the functi
 **Multer**
 
 
-## Postman
+## Postman Screenshots
 
 ![Postman screenshot](https://github.com/sourav-bhowal/Backend-Project/blob/main/public/Screenshot_2024-02-17_000335.png)
 
