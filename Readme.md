@@ -34,9 +34,9 @@ Build a similar backend as Youtube and Twitter that covers almost all the functi
 
 ## Postman
 
-![Postman screenshot](https://drive.google.com/file/d/14K_5kmPhkbgVj_mI3eO6l6dAQAE6olgq/view?usp=drive_link)
+![Postman screenshot](https://drive.google.com/file/d/14K_5kmPhkbgVj_mI3eO6l6dAQAE6olgq/view?usp=sharing)
 
-![Postman screenshot](https://drive.google.com/file/d/18_RQHx_Dae1VM3RG0SvSASNUz702jIeR/view?usp=drive_link)
+![Postman screenshot](https://drive.google.com/file/d/18_RQHx_Dae1VM3RG0SvSASNUz702jIeR/view?usp=sharing)
 
 
 ## Contributing
