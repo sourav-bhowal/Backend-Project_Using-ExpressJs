@@ -83,7 +83,7 @@ export const getUserChannelSubscribers = asyncHandler(async (req, res) => {
         {
             $lookup: {
                 from: "users",
-                localField: "subscriber",
+                localField: "channel",
                 foreignField: "_id",
                 as: "subscriber"
             }
@@ -135,7 +135,7 @@ export const getSubscribedChannels = asyncHandler(async (req, res) => {
         {
             $lookup: {
                 from: "users",
-                localField: "channel",
+                localField: "subscriber",
                 foreignField: "_id",
                 as: "subscribedChannel"
             }
